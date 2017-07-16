@@ -152,45 +152,10 @@ class DomRenderer extends Renderer<HtmlElement> {
       } else {
         // Otherwise... is this a new element?
         // TODO: New element
+        throw 'Not yet supported: new elements in diff...';
       }
     }
 
-    return state;
-    if (text.isNotEmpty) {
-      state.target.text = text;
-
-      // Add all children, since adding text will wipe them :(
-      state.children.clear();
-      state.node.children.forEach((child) {
-        if (child is TextNode) {
-          return;
-        } else {
-          var childState =
-              renderFresh(resolveNodeToState(child.hashCode, child));
-          state.target.append(childState.target);
-          state.children.add(childState);
-        }
-      });
-    } else {
-      // If the new node has more children, add them
-      if (i < newNode.children.length) {
-        for (i; i < newNode.children.length; i++) {
-          var child = state.node.children[i];
-          if (child is TextNode) continue;
-          var newState = renderFresh(resolveNodeToState(child.hashCode, child));
-          state.children.add(newState);
-        }
-      }
-
-      // If the new node has less children, remove the excess
-      else if (i > newNode.children.length) {
-        // TODO: Remove text nodes
-        state.target.children.length = i - 1;
-      }
-    }
-
-    // Set new node
-    state._node = newNode;
     return state;
   }
 }
