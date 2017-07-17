@@ -117,6 +117,14 @@ class DomRenderer extends Renderer<HtmlElement> {
     // Diff children in memory
     int i;
 
+    // If there are less children now, then we should remove the excess
+    var newChildren = newNode.children.where((n) => n is! TextNode).length;
+    var oldChildren = state.node.children.where((n) => n is! TextNode).length;
+
+    if (newChildren < oldChildren) {
+      state.target.children.length = newChildren;
+    }
+
     for (i = 0;
         i < state.node.children.length && i < newNode.children.length;
         i++) {
@@ -134,7 +142,8 @@ class DomRenderer extends Renderer<HtmlElement> {
 
       if (state.target.children.length > i) {
         var $el = state.target.children[i];
-        if ($el.tagName == oldChild.tagName.toUpperCase() && $el.attributes.containsKey(ID)) {
+        if ($el.tagName == oldChild.tagName.toUpperCase() &&
+            $el.attributes.containsKey(ID)) {
           oldStateId = int.parse($el.attributes[ID]);
           oldElement = $el;
         }
@@ -144,15 +153,18 @@ class DomRenderer extends Renderer<HtmlElement> {
       if (oldElement == null) {
         oldState = _elements[oldStateId];
         oldElement = oldState?.target;
-      } else oldState = _elements[oldStateId];
+      } else
+        oldState = _elements[oldStateId];
 
       // If there was a previous element, diff into that element
-      if (oldElement != null) {
+      if (oldElement != null || oldState != null) {
         renderDiffed(oldState, newChild);
       } else {
         // Otherwise... is this a new element?
-        // TODO: New element
-        throw 'Not yet supported: new elements in diff...';
+        var newChildState = resolveNodeToState(newChild.hashCode, newChild);
+        var fresh = renderFresh(newChildState);
+        state.target.children.add(fresh.target);
+        state.children.add(fresh);
       }
     }
 
