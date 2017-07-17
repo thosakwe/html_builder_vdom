@@ -125,36 +125,53 @@ class DomRenderer extends Renderer<HtmlElement> {
       state.target.children.length = newChildren;
     }
 
-    for (i = 0;
-        i < state.node.children.length && i < newNode.children.length;
-        i++) {
+    int stateChildIndex = 0;
+    for (i = 0; i < newNode.children.length; i++) {
       var newChild = newNode.children[i];
       if (newChild is TextNode) {
         continue;
       }
 
-      var oldChild = state.node.children[i];
+      var oldChild =
+          i < state.node.children.length ? state.node.children[i] : null;
 
       // Resolve a state to diff against
       int oldStateId;
       HtmlElement oldElement;
       DomRenderState oldState;
 
-      if (state.target.children.length > i) {
-        var $el = state.target.children[i];
-        if ($el.tagName == oldChild.tagName.toUpperCase() &&
-            $el.attributes.containsKey(ID)) {
-          oldStateId = int.parse($el.attributes[ID]);
-          oldElement = $el;
-        }
-      } else
-        oldStateId = oldChild.hashCode;
+      if (oldChild != null) {
+        if (state.target.children.length > i) {
+          var $el = state.target.children[i];
+          if ($el.tagName == oldChild.tagName.toUpperCase() &&
+              $el.attributes.containsKey(ID)) {
+            oldStateId = int.parse($el.attributes[ID]);
+            oldElement = $el;
+          }
+        } else
+          oldStateId = oldChild.hashCode;
 
-      if (oldElement == null) {
-        oldState = _elements[oldStateId];
-        oldElement = oldState?.target;
-      } else
-        oldState = _elements[oldStateId];
+        if (oldElement == null) {
+          oldState = _elements[oldStateId];
+          oldElement = oldState?.target;
+        } else
+          oldState = _elements[oldStateId];
+      } else {
+        // Try to match a vdom child?
+        if (stateChildIndex < state.children.length) {
+          var o = state.children[stateChildIndex];
+
+          if (o.node.tagName == newChild.tagName)
+            oldState = o;
+          else {
+            // If the existing element at this position is not the same kind of node,
+            // then invalidate the rest of the tree.
+            // TODO: Optimize this instead.
+            var newState = resolveNodeToState(newChild.hashCode, newChild);
+            state.children.insert(stateChildIndex++, newState);
+          }
+        }
+      }
 
       // If there was a previous element, diff into that element
       if (oldElement != null || oldState != null) {
@@ -166,6 +183,8 @@ class DomRenderer extends Renderer<HtmlElement> {
         state.target.children.add(fresh.target);
         state.children.add(fresh);
       }
+
+      stateChildIndex++;
     }
 
     return state;
