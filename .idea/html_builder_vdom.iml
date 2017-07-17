@@ -9,6 +9,7 @@
       <excludeFolder url="file://$MODULE_DIR$/temp" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/web/click/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/web/list/packages" />
       <excludeFolder url="file://$MODULE_DIR$/web/packages" />
       <excludeFolder url="file://$MODULE_DIR$/web/progress/packages" />
     </content>

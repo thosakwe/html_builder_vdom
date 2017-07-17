@@ -117,12 +117,14 @@ class DomRenderer extends Renderer<HtmlElement> {
     // Diff children in memory
     int i;
 
-    // If there are less children now, then we should remove the excess
+    // If there are less children now, then we should remove the excess.
     var newChildren = newNode.children.where((n) => n is! TextNode).length;
     var oldChildren = state.node.children.where((n) => n is! TextNode).length;
 
     if (newChildren < oldChildren) {
-      state.target.children.length = newChildren;
+      for (int i = newChildren; i < oldChildren; i++) {
+        state..target.children.removeLast()..children.removeLast();
+      }
     }
 
     int stateChildIndex = 0;
@@ -187,6 +189,7 @@ class DomRenderer extends Renderer<HtmlElement> {
       stateChildIndex++;
     }
 
+    state._node = newNode;
     return state;
   }
 }
